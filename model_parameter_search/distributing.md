@@ -19,19 +19,21 @@ j = gl.model_parameter_search.create((train, valid),
                                      environment=ec2)
 ```
 
-For more details on creating this environment, checkout the [API docs](https://dato.com/products/create/docs/generated/graphlab.deploy.environment.Hadoop.html#graphlab.deploy.environment.Hadoop) or the [Deployment](http://dato.com/learn/userguide/deployment/pipeline-introduction.html) chapter of the userguide.
+For more details on creating this environment, checkout the [API
+docs](https://dato.com/products/create/docs/generated/graphlab.deploy.ec2_cluster.create.html) or the [Deployment](http://dato.com/learn/userguide/deployment/pipeline-introduction.html) chapter of the userguide.
 
 For launching jobs on a Hadoop cluster, you instead create a Hadoop environment and pass this object into the `environment` argument:
 
 ```
-hd = graphlab.deploy.hadoop_cluster.create(‘hd’,
+hd = graphlab.deploy.hadoop_cluster.create('hd',
                                            dato_dist_path=<dd-path>,
                                            hadoop_conf_dir=<local-conf-path>)
 j = gl.model_parameter_search.create((train, valid), 
                                      my_model, my_params, 
                                      environment=hd)
 ```
-For more details on creating this environment, checkout the [API docs](https://dato.com/products/create/docs/generated/graphlab.deploy.environment.EC2.html#graphlab.deploy.environment.EC2) or the [Deployment](http://dato.com/learn/userguide/deployment/pipeline-introduction.html) chapter of the userguide.
+For more details on creating this environment, checkout the [API
+docs](https://dato.com/products/create/docs/generated/graphlab.deploy.hadoop_cluster.create.html) or the [Deployment](http://dato.com/learn/userguide/deployment/pipeline-introduction.html) chapter of the userguide.
 
 When getting started, it's useful to keep `perform_trial_run=True` to make sure you are creating your models properly.
 
