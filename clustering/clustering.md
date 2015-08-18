@@ -1,4 +1,3 @@
-#Clustering 
 The
  [GraphLab clustering toolkit](https://dato.com/products/create/docs/graphlab.toolkits.clustering.html)
 provides tools for unsupervised learning problems, where the aim is to
@@ -255,23 +254,127 @@ word2vec algorithm is a log-bilinear language model. Details can be found at the
 Google Code project page linked above. 
 
  > NOTE: It is important to keep in mind that the representations produced by log-
- bilinear models consistent latent variables with no interpretable, real-world meaning.
+ bilinear models consistent latent variables with no interpretable meaning.
 
 We use the gensim utility to unpack the vectors into Python lists of floats, then 
 enter each word:list[float] pair its own row of an
-[SFrame](https://dato.com/products/create/docs/generated/graphlab.SFrame.html).
+[SFrame](https://dato.com/products/create/docs/generated/graphlab.SFrame.html). 
+Below are some helper functions that we use to get the word vectors into an SFrame.
 
 ```python
-# load FNC features
-data_url = 'http://s3.amazonaws.com/dato-datasets/mlsp_2014/train_FNC.csv'
-col_types = [int] + [float] * 378
-fnc_sf = gl.SFrame.read_csv(data_url, column_type_hints=col_types)
+from gensim.models import Word2Vec
+from curses.ascii import isalpha, islower
 
-# load SBM features
-data_url = 'http://s3.amazonaws.com/dato-datasets/mlsp_2014/train_SBM.csv'
-col_types = [int] + [float] * 32
-sbm_sf = gl.SFrame.read_csv(data_url, column_type_hints=col_types)
+import graphlab as gl
 
-# join all features on the Id column
-dataset = fnc_sf.join(sbm_sf, on="Id")
+# filter out noisy words with some heuristics
+def is_valid_word(word):
+
+  # transform to ascii for filters below
+  ascii_word = word.encode('ascii', errors='replace')
+
+  # mark anything that is uppercase or non-alphabetic
+  valid = [isalpha(c) and islower(c)
+           for c in ascii_word]
+
+  '''
+  It may seem odd to filter out words with uppercase,
+  but in our experience, they were mostly proper nouns
+  like usernames and people's first names, which is 
+  quite noisy for something that is supposed to be more
+  general
+  '''
+
+  # mark as invalid if any letters marked
+  return all(valid)
+
+# get vectors in form of list[float] from gensim model
+def get_word_vectors(file_path, binary=True):
+
+  # unpack word vectors from bin file
+  # this may take a few minutes
+  word2vec = Word2Vec.load_word2vec)format(file_path, binary=binary)
+
+  # some funky business so I get lists instead of Python objects
+  return {word: word2vec[word]
+          for word in word2vec.vocab.keys()
+          if is_valid_word(word)}
+
+# Turn the dictionary from get_word_vectors into an SFrame
+def get_word2vec_sf(word2vec):
+
+  return gl.SFrame({
+      'word': word2vec.keys(),
+      'vector': word2vec.values()})
+
+# To get the data set as an SFrame
+dataset = get_word2vec_sf(
+            get_word_vectors("your_word2vec_bin_file_path"))
+```
+
+There are a few different important (optional) hyperparameters for 
+tuning a hierarchical k-means model:
+* max_cluster_size: once a cluster's member count goes below this number, the cluster is no longer further subclustered, so all clusters have at most max_cluster_size members
+* max_depth: once the cluster tree reaches this depth, the hierarchical k-means algorithm terminates
+* max_changes: if the number of changed cluster assignments between iterations for a level of the cluster hierarchy is <= this number, iteration on that level is terminated
+* branch_factor: each k-means subclustering produces branch_factor new clusters
+* max_iterations: once the number of iterations performed on a level of the cluster hierarchy reaches max_iterations, iteration for that level is terminated
+* cluster_scale: this is a scaling constant for max_cluster_size; it is only used if max_cluster_size is not set and we set it automatically
+
+For large datasets, this training process can be very time-consuming. The
+problem of partitioning *n* items into *k* clusters based on an item's distance
+from the cluster mean is
+ [NP-hard](http://en.wikipedia.org/wiki/NP-hard). There are a few tricks one might
+employ to reduce the running time of the algorithm. One such improvement is to
+reduce the total number of iterations required for convergence by making our
+initial cluster assignments more accurate. This is precisely why our implementation
+initializes cluster centers with the k-means++ algorithm. Here are a few other tips
+for reducing the overall running time:
+
+  - Cluster a sample of the original dataset.
+  - Do some initial feature selection to reduce the feature space to the most
+  discriminative features.
+
+The model exposes two fields to help us understand how the algorithm has
+clustered the data. The first is the `cluster_id` field, which gives us an
+SFrame containing one row for each record in our input dataset. Each row of
+`cluster_id` has a cluster assignment (an integer 0 to k, exclusive) and a
+distance, which is the [euclidean
+distance](http://en.wikipedia.org/wiki/Euclidean_distance) between the data
+point and its cluster's center.
+
+```python
+model['cluster_id']
+```
+
+```no-highlight
+    cluster_id    distance
+0           3   6.591738
+1           1   6.163163
+2           3   7.194580
+3           2   7.371710
+4           4   7.303070
+5           2   7.882903
+6           4   6.130990
+7           1   6.615896
+8           3   8.299443
+9           0   5.236333
+10          1   9.129009
+11          2   6.777277
+12          4   6.796411
+13          1   6.762669
+14          3   6.384697
+15          3   8.058596
+16          1   6.773928
+17          2   6.030693
+18          2   7.900586
+19          1   7.639997
+20          2   7.767107
+21          2   6.653062
+22          4   8.572708
+23          2   7.379239
+24          2   6.338177
+          ...        ...
+
+[86 rows x 2 columns]
 ```
