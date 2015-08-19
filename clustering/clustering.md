@@ -10,12 +10,15 @@ and
 respectively to choose initial clusters.
 
 ##K-Means
+
+###What you'll need for this example
 In this section, we explore a medical dataset from a June 2014 Kaggle
 competition using k-means clustering. The dataset can be found at [MLSP 2014
 Schizophrenia Classification Challenge](https://www.kaggle.com/c/mlsp-2014-mri),
 which is the Kaggle page for the IEEE International Workshop on Machine Learning
 for Signal Processing.
 
+###Preparing the data
 The original data consisted of two sets of features: functional network
 connectivity (FNC) features and source-based morphometry (SBM) features. A
 detailed description of these features is available at the Kaggle URL linked
@@ -47,6 +50,7 @@ sbm_sf = gl.SFrame.read_csv(data_url, column_type_hints=col_types)
 dataset = fnc_sf.join(sbm_sf, on="Id")
 ```
 
+###Tuning the model
 For many clustering algorithms including k-means, you need to specify the number
 of clusters the algorithm should create. Unfortunately, we rarely know the
 correct number of clusters a priori. There is a simple heuristic that often
@@ -64,6 +68,7 @@ del dataset["Id"] # delete 'Id' column to exclude it from feature set
 model = gl.kmeans.create(dataset, num_clusters=k)
 ```
 
+###Performance improvements
 For large datasets, this training process can be very time-consuming. The
 problem of partitioning *n* items into *k* clusters based on an item's distance
 from the cluster mean is
@@ -78,6 +83,7 @@ for reducing the overall running time:
   - Do some initial feature selection to reduce the feature space to the most
   discriminative features.
 
+###Results
 The model exposes two fields to help us understand how the algorithm has
 clustered the data. The first is the `cluster_id` field, which gives us an
 SFrame containing one row for each record in our input dataset. Each row of
@@ -235,6 +241,7 @@ model['cluster_info'][['cluster_id', '__within_distance__', '__size__']]
 [6 rows x 3 columns]<br/>
 </div>
 
+
 ##Hierarchical K-Means
 
 ###What you'll need for this example
@@ -246,7 +253,7 @@ shown in this section, you will also need [gensim](https://radimrehurek.com/gens
 Gensim's [word2vec implementation](https://radimrehurek.com/gensim/models/word2vec.html)
 is quite easy to use and provides utilities for unpacking the word2vec binary files.
 
-###The data
+###Preparing the data
 The data consists of real-valued vectors of 300 dimensions, each corresponding to a 
 unique string observed in a 100 billion word data set. There is one vector per unique 
 string. The vectors are acquired by running the word2vec algorithm on a corpus. The 
@@ -278,11 +285,9 @@ def is_valid_word(word):
            for c in ascii_word]
 
   '''
-  It may seem odd to filter out words with uppercase,
-  but in our experience, they were mostly proper nouns
-  like usernames and people's first names, which is 
-  quite noisy for something that is supposed to be more
-  general
+  It may seem odd to filter out words with uppercase, but in our experience, they 
+  were mostly proper nouns like usernames and people's first names, which is 
+  quite noisy and too specific for our model
   '''
 
   # mark as invalid if any letters marked
@@ -312,36 +317,49 @@ dataset = get_word2vec_sf(
             get_word_vectors("your_word2vec_bin_file_path"))
 ```
 
-There are a few different important (optional) hyperparameters for 
-tuning a hierarchical k-means model:
+There are a few different important (optional) hyperparameters for tuning a 
+hierarchical k-means model:
+
 * max_cluster_size: once a cluster's member count goes below this number, the cluster is no longer further subclustered, so all clusters have at most max_cluster_size members
 * max_depth: once the cluster tree reaches this depth, the hierarchical k-means algorithm terminates
 * max_changes: if the number of changed cluster assignments between iterations for a level of the cluster hierarchy is <= this number, iteration on that level is terminated
-* branch_factor: each k-means subclustering produces branch_factor new clusters
-* max_iterations: once the number of iterations performed on a level of the cluster hierarchy reaches max_iterations, iteration for that level is terminated
-* cluster_scale: this is a scaling constant for max_cluster_size; it is only used if max_cluster_size is not set and we set it automatically
+* branch_factor: each k-means subclustering produces _branch_factor_ new clusters
+* max_iterations: once the number of iterations performed on a level of the cluster hierarchy reaches _max_iterations_, iteration for that level is terminated
+* cluster_scale: this is a scaling constant for _max_cluster_size_; it is only used if _max_cluster_size_ is not set
 
-For large datasets, this training process can be very time-consuming. The
-problem of partitioning *n* items into *k* clusters based on an item's distance
-from the cluster mean is
- [NP-hard](http://en.wikipedia.org/wiki/NP-hard). There are a few tricks one might
-employ to reduce the running time of the algorithm. One such improvement is to
-reduce the total number of iterations required for convergence by making our
-initial cluster assignments more accurate. This is precisely why our implementation
-initializes cluster centers with the k-means++ algorithm. Here are a few other tips
-for reducing the overall running time:
+Our implementation calculates default values for _max_changes_ and _max_cluster_size_ based on the size of input data and 
 
-  - Cluster a sample of the original dataset.
-  - Do some initial feature selection to reduce the feature space to the most
-  discriminative features.
+```python
+# Training the model
+model = gl.toolkits.clustering.h_kmeans.create(
+    dataset, 
+    branch_factor=4, 
+    max_iterations=50)
+```
 
-The model exposes two fields to help us understand how the algorithm has
-clustered the data. The first is the `cluster_id` field, which gives us an
-SFrame containing one row for each record in our input dataset. Each row of
-`cluster_id` has a cluster assignment (an integer 0 to k, exclusive) and a
-distance, which is the [euclidean
-distance](http://en.wikipedia.org/wiki/Euclidean_distance) between the data
-point and its cluster's center.
+###Performance improvements
+Depending on the number of training examples, the dimensionality of the data, 
+and the multi-threading capability of your hardware, training can take a long 
+time. See the above 
+
+NOTE: We do not recommend using the raw representation of your data if it is very high-dimensional and/or sparse, like bag-of-words. One option transforming this data into 
+
+###Results
+Like flat k-means, hierarchical kmeans has the 'cluster_id' and 'cluster_info' 
+fields, but with some additional columns. The 'cluster_id' field contains one 
+additional column:
+
+* 'cluster_path': this corresponds to the digit string of the leaf cluster to which a training example was assigned 
+
+Keep in mind that the mapping from training example to cluster path is many-to
+-one. The 'cluster_info' field has a few additional columns:
+
+* 'cluster_path': this is a string of digits that represents the path from the root cluster (the full dataset) to the current cluster
+* 'parent_id': this is the unique integer id of this cluster's parent cluster
+* 'children_id': this is a list of the unique integer ids of the subclusters of this id; an empty list indicates a leaf cluster
+* 'num_members': the number of training examples assigned to this cluster
+
+The [digit strings](#digit-strings) that represent cluster paths are explained in more detail later in the userguide.
 
 ```python
 model['cluster_id']
@@ -378,3 +396,34 @@ model['cluster_id']
 
 [86 rows x 2 columns]
 ```
+
+###Extra Notes
+
+####Digit Strings <a id="digit-strings"></a>
+Each cluster in the tree can be uniquely represented by a 
+pair of values: a unique identifier of its parent and a 
+number from 0 until _k_ (a.k.a. branch_factor). Taking an 
+inductive approach, we can start at the root of the cluster 
+tree and uniquely represent each cluster in the tree as a 
+string of digits from 0 until _k_ that represent clustering 
+decisions at each level of the tree. 
+
+At first this representation may seem silly and overly 
+complicated compared to a unique integer id, but it can be 
+very powerful. For example, let's say you want to use 
+cluster membership of your training examples as features for 
+several downstream models, and, either for performance or 
+accuracy reasons, some models need more coarse-grained 
+clustering of the data. Truncating the digit strings mapped 
+to each example by _n_ characters give the clustering of the 
+data at _n_ levels up from the leaves.
+
+Because the length of the path from root to leaf is not 
+necessarily the same for all leaf clusters, you must be 
+cautious when truncating the strings. Instead of cutting of 
+the last _n_ digits of each string, for string _i_, you 
+should cut off this quantity:
+
+```python
+```
+
