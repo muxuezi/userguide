@@ -261,10 +261,10 @@ word2vec algorithm is a log-bilinear language model. Details can be found at the
 Google Code project page linked above. 
 
  > NOTE: It is important to keep in mind that the representations produced by log-
- bilinear models consistent latent variables with no interpretable meaning.
+ bilinear models consist of latent variables with no interpretable meaning.
 
 We use the gensim utility to unpack the vectors into Python lists of floats, then 
-enter each word:list[float] pair its own row of an
+enter each word-list[float] pair its own row of an
 [SFrame](https://dato.com/products/create/docs/generated/graphlab.SFrame.html). 
 Below are some helper functions that we use to get the word vectors into an SFrame.
 
@@ -351,8 +351,8 @@ additional column:
 
 * 'cluster_path': this corresponds to the digit string of the leaf cluster to which a training example was assigned 
 
-Keep in mind that the mapping from training example to cluster path is many-to
--one. The 'cluster_info' field has a few additional columns:
+Keep in mind that the mapping from training example to cluster path is 
+many-to-one. The 'cluster_info' field has a few additional columns:
 
 * 'cluster_path': this is a string of digits that represents the path from the root cluster (the full dataset) to the current cluster
 * 'parent_id': this is the unique integer id of this cluster's parent cluster
@@ -400,30 +400,32 @@ model['cluster_id']
 ###Extra Notes
 
 ####Digit Strings <a id="digit-strings"></a>
-Each cluster in the tree can be uniquely represented by a 
-pair of values: a unique identifier of its parent and a 
-number from 0 until _k_ (a.k.a. branch_factor). Taking an 
-inductive approach, we can start at the root of the cluster 
-tree and uniquely represent each cluster in the tree as a 
-string of digits from 0 until _k_ that represent clustering 
-decisions at each level of the tree. 
+Each cluster in the tree can be uniquely represented by a pair of values: a 
+unique identifier of its parent and a number from 0 until _k_ (a.k.a. 
+branch_factor). Taking an inductive approach, we can start at the root of the 
+cluster tree and uniquely represent each cluster in the tree as a string of 
+digits from 0 until _k_ that represent clustering decisions at each level of the 
+tree. 
 
-At first this representation may seem silly and overly 
-complicated compared to a unique integer id, but it can be 
-very powerful. For example, let's say you want to use 
-cluster membership of your training examples as features for 
-several downstream models, and, either for performance or 
-accuracy reasons, some models need more coarse-grained 
-clustering of the data. Truncating the digit strings mapped 
-to each example by _n_ characters give the clustering of the 
-data at _n_ levels up from the leaves.
+At first this representation may seem silly and overly complicated compared to a 
+unique integer id, but it can be very powerful. For example, let's say you want 
+to use cluster membership of your training examples as features for several 
+downstream models, and, either for performance or accuracy reasons, some models 
+need more coarse-grained clustering of the data. Truncating the digit strings 
+mapped to each example by _n_ characters give the clustering of the data at _n_ 
+levels up from the leaves.
 
-Because the length of the path from root to leaf is not 
-necessarily the same for all leaf clusters, you must be 
-cautious when truncating the strings. Instead of cutting of 
-the last _n_ digits of each string, for string _i_, you 
-should cut off this quantity:
+Because the length of the path from root to leaf is not necessarily the same for 
+all leaf clusters, you must be cautious when truncating the strings. 
+Fortunately, we provide and function `get_truncated_cluster_paths` to do this 
+for you. 
 
 ```python
+from graphlab.toolkits.clustering._util import get_truncated_cluster_paths
+
+# set the number of levels to truncate from the tree
+n = 2
+
+trunc_clust_paths = get_truncated_cluster_paths(model, n)
 ```
 
