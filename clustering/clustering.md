@@ -367,47 +367,57 @@ many-to-one. The 'cluster_info' field has a few additional columns:
 The [digit strings](#digit-strings) that represent cluster paths are explained in more detail later in the userguide.
 
 ```python
-model['cluster_id']
-```
+In [3]: model['cluster_info']
+Out[3]: 
+Columns:
+  cluster_id    int
+  parent_id     int
+  children_id   list
+  center        list
+  num_members   int
+  sum_squared_distance  float
+  cluster_path  str
 
-```no-highlight
-    cluster_id    distance
-0           3   6.591738
-1           1   6.163163
-2           3   7.194580
-3           2   7.371710
-4           4   7.303070
-5           2   7.882903
-6           4   6.130990
-7           1   6.615896
-8           3   8.299443
-9           0   5.236333
-10          1   9.129009
-11          2   6.777277
-12          4   6.796411
-13          1   6.762669
-14          3   6.384697
-15          3   8.058596
-16          1   6.773928
-17          2   6.030693
-18          2   7.900586
-19          1   7.639997
-20          2   7.767107
-21          2   6.653062
-22          4   8.572708
-23          2   7.379239
-24          2   6.338177
-          ...        ...
+Rows: 281
 
-[86 rows x 2 columns]
+Data:
++------------+-----------+------------------+-------------------------------+
+| cluster_id | parent_id |   children_id    |             center            |
++------------+-----------+------------------+-------------------------------+
+|     0      |     0     |   [1, 2, 3, 4]   | [[0.0, 0.0, 0.0, 0.0, 0.0,... |
+|     1      |     0     |   [5, 6, 7, 8]   | [[0.0010265228253324237, 0... |
+|     2      |     0     | [9, 10, 11, 12]  | [[-0.027463284931553995, 0... |
+|     3      |     0     | [13, 14, 15, 16] | [[-0.014677122097341216, 0... |
+|     4      |     0     | [17, 18, 19, 20] | [[0.03811578773067593, 0.0... |
+|     5      |     1     | [21, 22, 23, 24] | [[0.0045140935682285565, 0... |
+|     6      |     1     | [25, 26, 27, 28] | [[0.0013120796541009033, 0... |
+|     7      |     1     | [29, 30, 31, 32] | [[-0.005605286433737175, -... |
+|     8      |     1     | [33, 34, 35, 36] | [[0.003320932381760702, 0.... |
+|     9      |     2     | [37, 38, 39, 40] | [[-0.043639816365127135, 0... |
++------------+-----------+------------------+-------------------------------+
++-------------+----------------------+--------------+
+| num_members | sum_squared_distance | cluster_path |
++-------------+----------------------+--------------+
+|     5000    |         0.0          |              |
+|     1805    |    1684.05157831     |      0       |
+|     982     |     775.9770063      |      1       |
+|     699     |     495.01208696     |      2       |
+|     1514    |    1275.48574952     |      3       |
+|     426     |    375.033422232     |      00      |
+|     555     |    502.095707968     |      01      |
+|     396     |    347.897948673     |      02      |
+|     428     |    391.708075624     |      03      |
+|     300     |    200.757830087     |      10      |
++-------------+----------------------+--------------+
+[281 rows x 7 columns]
 ```
 
 ###Extra Notes
 
 ####Digit Strings <a id="digit-strings"></a>
 Each cluster in the tree can be uniquely represented by a pair of values: a 
-unique identifier of its parent and a number from 0 until _k_ (a.k.a. 
-branch_factor). Taking an inductive approach, we can start at the root of the 
+unique identifier of its parent and a number from 0 until _k_ (i.e. 
+_branch_factor_). Taking an inductive approach, we can start at the root of the 
 cluster tree and uniquely represent each cluster in the tree as a string of 
 digits from 0 until _k_ that represent clustering decisions at each level of the 
 tree. 
