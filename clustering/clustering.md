@@ -480,7 +480,7 @@ Data:
 [661 rows x 3 columns]
 ```
 
-The _with_cluster_info_ parameter will default to _True_, in which case the returned SFrame will also have the informatio from _cluster_info_ for each leaf cluster.
+The _with_cluster_info_ parameter will default to _True_, in which case the returned SFrame will also have the information from _cluster_info_ for each leaf cluster.
 
 ####Digit Strings <a id="digit-strings"></a>
 Each cluster in the tree can be uniquely represented by a pair of values: a 
