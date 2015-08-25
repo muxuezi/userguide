@@ -366,6 +366,8 @@ many-to-one. The 'cluster_info' field has a few additional columns:
 
 The [digit strings](#digit-strings) that represent cluster paths are explained in more detail later in the userguide.
 
+Below is some example output for the _cluster_info_ field:
+
 ```python
 In [3]: model['cluster_info']
 Out[3]: 
@@ -410,6 +412,37 @@ Data:
 |     300     |    200.757830087     |      10      |
 +-------------+----------------------+--------------+
 [281 rows x 7 columns]
+```
+
+Below is some example output for the _cluster_id_ field:
+
+```python
+In [4]: model['cluster_id']
+Out[4]: 
+Columns:
+  row_id        int
+  cluster_id    int
+  distance      float
+  cluster_path  str
+
+Rows: 5000
+
+Data:
++--------+------------+----------------+--------------+
+| row_id | cluster_id |    distance    | cluster_path |
++--------+------------+----------------+--------------+
+|   0    |     77     | 0.831064243757 |     320      |
+|   1    |     85     | 0.757349949511 |     0000     |
+|   2    |    133     | 0.866997194502 |     0300     |
+|   3    |     92     | 0.875154159481 |     0013     |
+|   4    |    137     | 0.852805740701 |     0310     |
+|   5    |    169     | 0.71566923634  |     1200     |
+|   6    |     49     | 0.763949089568 |     130      |
+|   7    |    173     | 0.769406168984 |     1210     |
+|   8    |    149     | 0.631342460779 |     1000     |
+|   9    |    217     | 0.741252937775 |     3110     |
++--------+------------+----------------+--------------+
+[5000 rows x 4 columns]
 ```
 
 ###Extra Notes
