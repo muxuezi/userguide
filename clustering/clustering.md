@@ -9,7 +9,7 @@ and
  [reservoir sampling](http://www.geeksforgeeks.org/reservoir-sampling/)
 respectively to choose initial clusters.
 
-##K-Means
+##K-Means <a id="k-means"></a>
 
 ###What you'll need for this example
 In this section, we explore a medical dataset from a June 2014 Kaggle
@@ -243,6 +243,8 @@ model['cluster_info'][['cluster_id', '__within_distance__', '__size__']]
 
 
 ##Hierarchical K-Means
+
+This algorithm is an extensions on the [k-means](#k-means) algorithm described in the previous section. It involves recursively applying the k-means algorithm on a data set until some termination conditions are met. The result of hierarchical k-means is a tree-structure clustering in which each level of the tree is a more fine-grained partition of the data set than the previous level. For more details, see [this paper](http://www.andrew.cmu.edu/user/hgifford/projects/k_means.pdf).
 
 ###What you'll need for this example
 In this section, we explore a dataset of vector space embeddings of words from 
