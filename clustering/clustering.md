@@ -68,7 +68,7 @@ del dataset["Id"] # delete 'Id' column to exclude it from feature set
 model = gl.kmeans.create(dataset, num_clusters=k)
 ```
 
-###Performance improvements
+###Performance improvements <a id="kmeans-performance"></a>
 For large datasets, this training process can be very time-consuming. The
 problem of partitioning *n* items into *k* clusters based on an item's distance
 from the cluster mean is
@@ -317,8 +317,14 @@ dataset = get_word2vec_sf(
             get_word_vectors("your_word2vec_bin_file_path"))
 ```
 
-There are a few different important (optional) hyperparameters for tuning a 
-hierarchical k-means model:
+###Performance improvements
+Depending on the number of training examples, the dimensionality of the data, 
+and the multi-threading capability of your hardware, training can take a long 
+time. See [kmeans performance improvements](#kmeans-performance) and read the 
+rest of this section.
+
+There are a few different important (optional) hyperparameters for tuning the 
+accuracy/speed trade-off of a hierarchical k-means model:
 
 * _max_cluster_size_: if a cluster's member count goes below this number, the cluster is not further subclustered, so all leaf clusters have at most _max_cluster_size_ members
  * If you don't need clusters below a certain size, this parameter can be increased to reduce the number of levels that the model will attempt to complete. Note that results will be different for each random initialization and subset of the data.
@@ -341,15 +347,9 @@ model = gl.toolkits.clustering.h_kmeans.create(
     branch_factor=4, 
     max_iterations=50)
 ```
+ > NOTE: We do not recommend using the raw representation of your data if it is very high-dimensional and/or sparse, like bag-of-words. One option transforming this data into 
 
-###Performance improvements
-Depending on the number of training examples, the dimensionality of the data, 
-and the multi-threading capability of your hardware, training can take a long 
-time. See the above 
-
-NOTE: We do not recommend using the raw representation of your data if it is very high-dimensional and/or sparse, like bag-of-words. One option transforming this data into 
-
-###Results
+###Raw results
 Like flat k-means, hierarchical kmeans has the 'cluster_id' and 'cluster_info' 
 fields, but with some additional columns. The 'cluster_id' field contains one 
 additional column:
@@ -369,8 +369,8 @@ The [digit strings](#digit-strings) that represent cluster paths are explained i
 Below is some example output for the _cluster_info_ field:
 
 ```python
-In [3]: model['cluster_info']
-Out[3]: 
+model['cluster_info']
+
 Columns:
   cluster_id    int
   parent_id     int
@@ -380,70 +380,103 @@ Columns:
   sum_squared_distance  float
   cluster_path  str
 
-Rows: 281
+Rows: 881
 
 Data:
 +------------+-----------+------------------+-------------------------------+
 | cluster_id | parent_id |   children_id    |             center            |
 +------------+-----------+------------------+-------------------------------+
 |     0      |     0     |   [1, 2, 3, 4]   | [[0.0, 0.0, 0.0, 0.0, 0.0,... |
-|     1      |     0     |   [5, 6, 7, 8]   | [[0.0010265228253324237, 0... |
-|     2      |     0     | [9, 10, 11, 12]  | [[-0.027463284931553995, 0... |
-|     3      |     0     | [13, 14, 15, 16] | [[-0.014677122097341216, 0... |
-|     4      |     0     | [17, 18, 19, 20] | [[0.03811578773067593, 0.0... |
-|     5      |     1     | [21, 22, 23, 24] | [[0.0045140935682285565, 0... |
-|     6      |     1     | [25, 26, 27, 28] | [[0.0013120796541009033, 0... |
-|     7      |     1     | [29, 30, 31, 32] | [[-0.005605286433737175, -... |
-|     8      |     1     | [33, 34, 35, 36] | [[0.003320932381760702, 0.... |
-|     9      |     2     | [37, 38, 39, 40] | [[-0.043639816365127135, 0... |
+|     1      |     0     |   [5, 6, 7, 8]   | [[-0.013871886330844602, 0... |
+|     2      |     0     | [9, 10, 11, 12]  | [[0.005115983052361946, 0.... |
+|     3      |     0     | [13, 14, 15, 16] | [[0.028774363911598766, 0.... |
+|     4      |     0     | [17, 18, 19, 20] | [[-0.02957047659794855, 0.... |
+|     5      |     1     | [21, 22, 23, 24] | [[0.0012539025527132685, 0... |
+|     6      |     1     | [25, 26, 27, 28] | [[-0.014760119120969573, 0... |
+|     7      |     1     | [29, 30, 31, 32] | [[-0.01852979825752836, 0.... |
+|     8      |     1     | [33, 34, 35, 36] | [[-0.010061373369083259, -... |
+|     9      |     2     | [37, 38, 39, 40] | [[-0.006255177732406638, -... |
 +------------+-----------+------------------+-------------------------------+
 +-------------+----------------------+--------------+
 | num_members | sum_squared_distance | cluster_path |
 +-------------+----------------------+--------------+
-|     5000    |         0.0          |              |
-|     1805    |    1684.05157831     |      0       |
-|     982     |     775.9770063      |      1       |
-|     699     |     495.01208696     |      2       |
-|     1514    |    1275.48574952     |      3       |
-|     426     |    375.033422232     |      00      |
-|     555     |    502.095707968     |      01      |
-|     396     |    347.897948673     |      02      |
-|     428     |    391.708075624     |      03      |
-|     300     |    200.757830087     |      10      |
+|    150000   |         0.0          |              |
+|    19898    |    13991.2704743     |      0       |
+|    57177    |    53272.9134985     |      1       |
+|    49114    |    41576.1548369     |      2       |
+|    23811    |    18298.9378922     |      3       |
+|     2178    |    1237.53582602     |      00      |
+|     3065    |    1754.11966104     |      01      |
+|    10163    |    7355.40844499     |      02      |
+|     4492    |    2446.05430312     |      03      |
+|    14211    |    12698.7855099     |      10      |
 +-------------+----------------------+--------------+
-[281 rows x 7 columns]
+[881 rows x 7 columns]
 ```
 
 Below is some example output for the _cluster_id_ field:
 
 ```python
-In [4]: model['cluster_id']
-Out[4]: 
+model['cluster_id']
+
 Columns:
   row_id        int
   cluster_id    int
   distance      float
   cluster_path  str
 
-Rows: 5000
+Rows: 150000
 
 Data:
 +--------+------------+----------------+--------------+
 | row_id | cluster_id |    distance    | cluster_path |
 +--------+------------+----------------+--------------+
-|   0    |     77     | 0.831064243757 |     320      |
-|   1    |     85     | 0.757349949511 |     0000     |
-|   2    |    133     | 0.866997194502 |     0300     |
-|   3    |     92     | 0.875154159481 |     0013     |
-|   4    |    137     | 0.852805740701 |     0310     |
-|   5    |    169     | 0.71566923634  |     1200     |
-|   6    |     49     | 0.763949089568 |     130      |
-|   7    |    173     | 0.769406168984 |     1210     |
-|   8    |    149     | 0.631342460779 |     1000     |
-|   9    |    217     | 0.741252937775 |     3110     |
+|   0    |    637     | 0.820549982317 |    20000     |
+|   1    |    697     | 0.891153838293 |    21000     |
+|   2    |    385     | 0.778446810231 |    10000     |
+|   3    |    275     | 0.836276477416 |     3022     |
+|   4    |    837     | 0.802785920139 |    31010     |
+|   5    |     25     | 0.647942776286 |     010      |
+|   6    |     85     | 0.694921185829 |     0000     |
+|   7    |    449     | 0.960522124393 |    11000     |
+|   8    |    649     | 0.72643727292  |    20100     |
+|   9    |    638     | 0.851073471217 |    20001     |
 +--------+------------+----------------+--------------+
-[5000 rows x 4 columns]
+[150000 rows x 4 columns]
 ```
+
+###Examining the clusters
+The raw results returned by the model are concise and clean, but they are a little hard to interpret. If we would like to see the relationships between data points that the algorithm has exposed, we will need to do some transformations. We have provided a function `get_cluster_grouped_data` in the clustering module that does this for you. Given the model, the data, and the name of an aggregation column from the original data, it will return an SFrame in which each row has a unique leaf cluster id and the list of elements from the aggregation column that were assigned to the leaf cluster with that id.
+
+```python
+get_cluster_grouped_data(model, data, 'word', with_cluster_info=False)
+
+Columns:
+  id    int
+  cluster_id    int
+  word_cluster  list
+
+Rows: 661
+
+Data:
++----+------------+-------------------------------+
+| id | cluster_id |          word_cluster         |
++----+------------+-------------------------------+
+| 0  |    118     | [bool, kaspersky, dng, xs,... |
+| 1  |    435     | [multisourcing, multiservi... |
+| 2  |    537     | [explusions, diplomat, pla... |
+| 3  |    526     | [husbands, remarry, affect... |
+| 4  |    511     | [clubrooms, heathland, str... |
+| 5  |    363     | [wana, thas, feck, yankee,... |
+| 6  |    431     | [cyberweapon, unpatched, k... |
+| 7  |    738     | [sonority, fingerwork, arp... |
+| 8  |    733     | [vocalization, personae, e... |
+| 9  |    621     | [attacted, annnounced, unb... |
++----+------------+-------------------------------+
+[661 rows x 3 columns]
+```
+
+The _with_cluster_info_ parameter will default to _True_, in which case the returned SFrame will also have the informatio from _cluster_info_ for each leaf cluster.
 
 ###Extra Notes
 
@@ -477,3 +510,4 @@ n = 2
 trunc_clust_paths = get_truncated_cluster_paths(model, n)
 ```
 
+If your end goal is to use the clusters as features in a down-stream model, this function can be used to tune the richness of the representation to accomodate your performance/accuracy trade-off needs. If you are more interested in data exploration and visualization, this function can be composed with `get_cluster_grouped_data` to view partitions of the data at various resolutions, possibly resulting in new insights into the relationships inherent in your data.
