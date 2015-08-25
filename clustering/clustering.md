@@ -445,7 +445,9 @@ Data:
 [150000 rows x 4 columns]
 ```
 
-###Examining the clusters
+###Extra Notes
+
+####Examining the clusters
 The raw results returned by the model are concise and clean, but they are a little hard to interpret. If we would like to see the relationships between data points that the algorithm has exposed, we will need to do some transformations. 
 
 We have provided a function `get_cluster_grouped_data` in the clustering module that transforms the data into a more intuitive grouping. Given the model, the data, and the name of an aggregation column from the original data, it will return an SFrame in which each row has a unique leaf cluster id and the list of elements from the aggregation column that were assigned to the leaf cluster with that id.
@@ -479,8 +481,6 @@ Data:
 ```
 
 The _with_cluster_info_ parameter will default to _True_, in which case the returned SFrame will also have the informatio from _cluster_info_ for each leaf cluster.
-
-###Extra Notes
 
 ####Digit Strings <a id="digit-strings"></a>
 Each cluster in the tree can be uniquely represented by a pair of values: a 
