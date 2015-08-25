@@ -448,9 +448,23 @@ Data:
 ###Extra Notes
 
 ####Examining the clusters
-The raw results returned by the model are concise and clean, but they are a little hard to interpret. If we would like to see the relationships between data points that the algorithm has exposed, we will need to do some transformations. 
+The raw results returned by the model are concise and clean, but they are a 
+little hard to interpret. If we would like to see the relationships between 
+data points that the algorithm has exposed, we will need to do some 
+transformations. 
 
-We have provided a function `get_cluster_grouped_data` in the clustering module that transforms the data into a more intuitive grouping. Given the model, the data, and the name of an aggregation column from the original data, it will return an SFrame in which each row has a unique leaf cluster id and the list of elements from the aggregation column that were assigned to the leaf cluster with that id.
+We have provided a function `get_cluster_grouped_data` in the clustering module 
+that transforms the data into a more intuitive grouping. Given the model, the 
+data, and the name of an aggregation column from the original data, it will 
+return an SFrame in which each row has a unique leaf cluster id and the list of 
+elements from the aggregation column that were assigned to the leaf cluster 
+with that id. The _with_cluster_info_ parameter will default to _True_, in 
+which case the returned SFrame will also have the information from 
+_cluster_info_ for each leaf cluster.
+
+As you can see from the output below, you can now select a cluster by id and 
+see the gruoped cluster members. This grouping can be helpful for checking 
+cluster quality and for data exploration and visualization.
 
 ```python
 get_cluster_grouped_data(model, data, 'word', with_cluster_info=False)
@@ -479,8 +493,6 @@ Data:
 +----+------------+-------------------------------+
 [661 rows x 3 columns]
 ```
-
-The _with_cluster_info_ parameter will default to _True_, in which case the returned SFrame will also have the information from _cluster_info_ for each leaf cluster.
 
 ####Digit Strings <a id="digit-strings"></a>
 Each cluster in the tree can be uniquely represented by a pair of values: a 
