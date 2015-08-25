@@ -446,7 +446,9 @@ Data:
 ```
 
 ###Examining the clusters
-The raw results returned by the model are concise and clean, but they are a little hard to interpret. If we would like to see the relationships between data points that the algorithm has exposed, we will need to do some transformations. We have provided a function `get_cluster_grouped_data` in the clustering module that does this for you. Given the model, the data, and the name of an aggregation column from the original data, it will return an SFrame in which each row has a unique leaf cluster id and the list of elements from the aggregation column that were assigned to the leaf cluster with that id.
+The raw results returned by the model are concise and clean, but they are a little hard to interpret. If we would like to see the relationships between data points that the algorithm has exposed, we will need to do some transformations. 
+
+We have provided a function `get_cluster_grouped_data` in the clustering module that transforms the data into a more intuitive grouping. Given the model, the data, and the name of an aggregation column from the original data, it will return an SFrame in which each row has a unique leaf cluster id and the list of elements from the aggregation column that were assigned to the leaf cluster with that id.
 
 ```python
 get_cluster_grouped_data(model, data, 'word', with_cluster_info=False)
@@ -510,4 +512,6 @@ n = 2
 trunc_clust_paths = get_truncated_cluster_paths(model, n)
 ```
 
-If your end goal is to use the clusters as features in a down-stream model, this function can be used to tune the richness of the representation to accomodate your performance/accuracy trade-off needs. If you are more interested in data exploration and visualization, this function can be composed with `get_cluster_grouped_data` to view partitions of the data at various resolutions, possibly resulting in new insights into the relationships inherent in your data.
+If your end goal is to use the clusters as features in a down-stream model, this function can be used to tune the richness of the representation to accomodate your performance/accuracy trade-off needs. 
+
+If you are more interested in data exploration and visualization, this function can be composed with `get_cluster_grouped_data` to view partitions of the data at various resolutions, possibly resulting in new insights into the relationships inherent in your data.
